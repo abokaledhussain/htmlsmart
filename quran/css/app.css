@@ -46,6 +46,7 @@ button, select, input { font: inherit; }
   padding: 0 10px; font-weight: 700;
 }
 .icon-btn:hover { background: rgba(255,255,255,.3); }
+#go-home { display: inline-flex; align-items: center; justify-content: center; text-decoration: none; font-size: 22px; min-width: 40px; padding: 0 8px; }
 
 /* ---------- المصحف ---------- */
 #reader {
