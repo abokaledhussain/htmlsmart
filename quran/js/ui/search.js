@@ -78,7 +78,6 @@
 
     function render(out, q) {
       current = out.results;
-      Search.setWordQuery(out.wordQuery);
       list.innerHTML = '';
       current.forEach(function (r) {
         var b = Util.el('button', 'search-item');
@@ -104,10 +103,12 @@
     /* الانتقال: تحديث التلوين أولًا، ثم الصفحة، ثم السطر المحدد بعد استقرار الرسم */
     function pick(r) {
       close();
+      Search.setHighlight(r.wordIds);
       Reader.refresh();
       Reader.jumpTo(r.page, 0);
       if (r.surah > 0) {
-        setTimeout(function () { Reader.scrollToWord(r.page, r.surah, r.ayah, r.occurrence); }, 200);
+        var gi = r.wordIds.length ? r.wordIds[0] : -1;
+        setTimeout(function () { Reader.scrollToWord(r.page, r.surah, r.ayah, gi); }, 200);
       }
     }
 

@@ -97,6 +97,12 @@
     var topBefore = sec.getBoundingClientRect().top;
     var heightBefore = sec.offsetHeight;
     var result = Layout.computeRows(page, pagesEl.clientWidth, settings.scale);
+    /* مواضع كلمات الصفحة في الفهرس العام للبحث، لتلوين الكلمات المختارة فقط */
+    var gi = Search.firstWordOfPage(n);
+    var gis = new Map();
+    page.lines.forEach(function (line) {
+      line.forEach(function (t) { if (t.type === 'w') gis.set(t, gi++); });
+    });
     sec.innerHTML = '';
     var prevJuz = n > 1 ? QuranData.pages[n - 1].juz : null;
     if (prevJuz !== page.juz) sec.appendChild(Util.el('div', 'juz', 'الجزء ' + Util.digits(page.juz)));
@@ -113,10 +119,12 @@
         span.style.fontFamily = '"' + QuranData.familyOf(t.font) + '"';
         span.style.fontSize = size + 'px';
         span.style.lineHeight = (result.size * 1.5) + 'px';
-        /* كلمات نتيجة البحث تُلوَّن بالأحمر بدون تظليل، كما في الأندرويد */
-        var hit = t.type === 'w' && Search.wordHit(t.text);
+        /* كلمات العبارة المختارة تُلوَّن بالأحمر بدون تظليل، في الموضع الذي اختاره المستخدم فقط */
+        var g = gis.has(t) ? gis.get(t) : -1;
+        var hit = g >= 0 && Search.isHit(g);
         span.dataset.base = hit ? SEARCH_RED : baseColorOf(t);
         if (hit) span.dataset.hit = '1';
+        if (g >= 0) span.dataset.gi = g;
         span.style.color = span.dataset.base;
         if (t.type === 'w' || t.type === 'e') {
           span.dataset.s = t.surah;
@@ -343,23 +351,15 @@
     scrollPlay.textContent = '▶';
   }
 
-  /* الانتقال إلى ظهور الكلمة المحدد داخل الصفحة (أو أول الآية إن لم يكن بحث كلمات)، ليظهر في أعلى الشاشة */
-  function scrollToWord(n, s, a, occ, attempt) {
+  /* الانتقال إلى أول كلمة من النتيجة داخل الصفحة (أو أول الآية إن لم تكن النتيجة كلمات)، ليظهر في أعلى الشاشة */
+  function scrollToWord(n, s, a, gi, attempt) {
     attempt = attempt || 0;
     renderPage(n);
-    var toks = sections[n].querySelectorAll('.tok[data-a]');
-    var hasQuery = Search.getWordQuery() !== null;
-    var target = null, seen = 0;
-    for (var i = 0; i < toks.length; i++) {
-      var t = toks[i];
-      if (+t.dataset.s !== s || +t.dataset.a !== a) continue;
-      if (!hasQuery) { target = t; break; }
-      if (t.dataset.hit !== '1') continue;
-      if (seen === occ) { target = t; break; }
-      seen++;
-    }
+    var target = gi >= 0
+      ? sections[n].querySelector('.tok[data-gi="' + gi + '"]')
+      : sections[n].querySelector('.tok[data-s="' + s + '"][data-a="' + a + '"]');
     if (!target) {
-      if (attempt < 12) setTimeout(function () { scrollToWord(n, s, a, occ, attempt + 1); }, 40);
+      if (attempt < 12) setTimeout(function () { scrollToWord(n, s, a, gi, attempt + 1); }, 40);
       return;
     }
     var rt = reader.getBoundingClientRect().top;
