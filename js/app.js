@@ -839,7 +839,11 @@
     const resetBtn = el('button', 'btn danger', 'إعادة تعيين');
     resetBtn.type = 'button';
     resetBtn.onclick = () => confirmBox('سيتم إعادة الإعدادات إلى الافتراضي. لن تُحذف صفحاتك أو ملفاتك.', 'إعادة تعيين', () => {
-      state.settings = Object.assign({}, DEFAULT_SETTINGS, { lastBackup: state.settings.lastBackup });
+      state.settings = Object.assign({}, DEFAULT_SETTINGS, {
+        lastBackup: state.settings.lastBackup,
+        remoteHash: state.settings.remoteHash,
+        appliedLocalHash: state.settings.appliedLocalHash
+      });
       applySettings();
       save();
       openSettings();
@@ -848,7 +852,7 @@
 
     sec('عن التطبيق');
     const about = el('div', 'about');
-    about.appendChild(el('p', '', 'الإصدار: HtmlSmart Web 1.3 (مطابق لتطبيق الأندرويد 3.5.25)'));
+    about.appendChild(el('p', '', 'الإصدار: HtmlSmart Web 1.4 (مطابق لتطبيق الأندرويد 3.5.25)'));
     about.appendChild(el('p', '', 'التقنيات: HTML و CSS و JavaScript و IndexedDB و JSZip'));
     wrap.appendChild(about);
 
@@ -931,7 +935,7 @@
     openModal(wrap, true);
   }
 
-  function applyRestore(data, replace) {
+  function applyRestore(data, replace, silent) {
     if (replace) {
       state.pages = [];
       state.folders = [];
@@ -950,7 +954,83 @@
     normalize();
     save();
     render();
-    alert(`تمت الاستعادة: ${made.length} صفحة.`);
+    if (!silent) alert(`تمت الاستعادة: ${made.length} صفحة.`);
+  }
+
+  // ---------- النسخة المنشورة مع الصفحة (backup.zip) ----------
+  const REMOTE_BACKUP = 'backup.zip';
+
+  async function sha256Hex(buf) {
+    const d = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(d), (b) => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  /** بصمة بيانات الجهاز الحالية، لمعرفة إن كان قد عدّل شيئاً منذ آخر استعادة */
+  function localFingerprint() {
+    const text = JSON.stringify({ p: state.pages, f: state.folders, o: state.order });
+    return sha256Hex(new TextEncoder().encode(text));
+  }
+
+  function isBusy() {
+    return !$('#viewer').classList.contains('hidden') || !$('#modal').classList.contains('hidden');
+  }
+
+  /** يفحص backup.zip بجانب الصفحة، ويستعيده إن تغيّر منذ آخر مرة */
+  async function checkRemoteBackup() {
+    if (!window.crypto || !crypto.subtle || isBusy()) return;
+    let buf;
+    try {
+      const res = await fetch(REMOTE_BACKUP, { cache: 'no-store' });
+      if (!res.ok) return;
+      buf = await res.arrayBuffer();
+    } catch (_) {
+      return; // لا يوجد ملف أو لا يوجد اتصال
+    }
+    const remoteHash = await sha256Hex(buf);
+    if (remoteHash === state.settings.remoteHash) return;
+
+    const localHash = await localFingerprint();
+    const localChanged = state.settings.appliedLocalHash !== localHash;
+    if (localChanged && state.pages.length > 0) {
+      askRemoteRestore(buf, remoteHash);
+    } else {
+      await applyRemoteBackup(buf, remoteHash);
+    }
+  }
+
+  async function applyRemoteBackup(buf, remoteHash) {
+    try {
+      const data = await HSBackup.readFile(new File([buf], REMOTE_BACKUP));
+      applyRestore(data, true, true);
+      state.settings.remoteHash = remoteHash;
+      state.settings.appliedLocalHash = await localFingerprint();
+      save();
+      showToast(`تمت استعادة النسخة المنشورة: ${data.list.length} صفحة`);
+    } catch (err) {
+      console.warn('تعذّرت الاستعادة التلقائية', err);
+    }
+  }
+
+  function askRemoteRestore(buf, remoteHash) {
+    const wrap = el('div');
+    wrap.appendChild(el('h2', '', 'نسخة جديدة متاحة'));
+    wrap.appendChild(el('p', '', 'تم تحديث النسخة المنشورة، لكن هذا الجهاز عدّل صفحاته بعد آخر استعادة. هل تستبدل صفحاته بالنسخة الجديدة؟ التعديلات المحلية ستفقد.'));
+    const row = el('div', 'row end');
+    const ignore = el('button', 'btn ghost', 'تجاهل');
+    ignore.type = 'button';
+    ignore.onclick = () => { state.settings.remoteHash = remoteHash; save(); closeModal(); };
+    const replace = el('button', 'btn danger', 'استبدال');
+    replace.type = 'button';
+    replace.onclick = () => { closeModal(); applyRemoteBackup(buf, remoteHash); };
+    row.append(ignore, replace);
+    wrap.appendChild(row);
+    openModal(wrap, true);
+  }
+
+  function showToast(text) {
+    const t = el('div', 'toast', text);
+    document.body.appendChild(t);
+    setTimeout(() => t.remove(), 4000);
   }
 
   // ---------- القائمة الجانبية ----------
@@ -1004,6 +1084,8 @@
     document.addEventListener('fullscreenchange', updateFullIcon);
     updateFullIcon();
     document.addEventListener('visibilitychange', syncWakeLock);
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkRemoteBackup(); });
+    checkRemoteBackup();
     $('#search').addEventListener('input', render);
     $('#viewerBack').addEventListener('click', closeViewer);
     bindDrawer();

@@ -201,3 +201,5 @@ button { cursor: pointer; }
 .brand-author { font-size: 1.05em; font-weight: 700; color: var(--text); }
 .brand-app { color: var(--primary); font-weight: 700; }
 .brand-tech { font-size: 0.85em; }
+
+.toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); max-width: calc(100vw - 32px); background: var(--primary); color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.25); z-index: 100; }
