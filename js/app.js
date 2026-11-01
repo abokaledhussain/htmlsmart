@@ -235,8 +235,10 @@
 
   function updateFullIcon() {
     const on = !!document.fullscreenElement;
-    $('#btnFull').setAttribute('aria-label', on ? 'إنهاء ملء الشاشة' : 'ملء الشاشة');
-    $('#fullIcon').innerHTML = on
+    const fb = $('#btnFull');
+    if (fb) fb.setAttribute('aria-label', on ? 'إنهاء ملء الشاشة' : 'ملء الشاشة');
+    const fi = $('#fullIcon');
+    if (fi) fi.innerHTML = on
       ? '<path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/>'
       : '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>';
   }
@@ -595,6 +597,7 @@
   // ---------- النوافذ العامة ----------
   function openModal(node, compact) {
     const modal = $('#modal');
+    modal.classList.remove('sheet');
     modal.textContent = '';
     modal.appendChild(node);
     modal.classList.remove('hidden');
@@ -604,6 +607,7 @@
   }
 
   function closeModal() {
+    $('#modal').classList.remove('sheet');
     $('#modal').classList.add('hidden');
     $('#modalBg').classList.add('hidden');
     $('#modal').textContent = '';
@@ -737,21 +741,41 @@
     return row;
   }
 
-  /** نافذة تغيير عدد الأعمدة فقط */
+  /** نافذة عدد الأعمدة: قوس مستدير بزخرفة إسلامية خفيفة */
   function openColumns() {
-    const s = state.settings;
-    const wrap = el('div');
+    const st = state.settings;
+    const wrap = el('div', 'sheet-inner');
+    const orn = el('div', 'ornament');
+    orn.innerHTML = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M24 4 L30 18 L44 24 L30 30 L24 44 L18 30 L4 24 L18 18 Z" fill="none" stroke="currentColor" stroke-width="1.6"/><circle cx="24" cy="24" r="4" fill="currentColor"/></svg>';
+    wrap.appendChild(orn);
     wrap.appendChild(el('h2', '', 'عدد الأعمدة'));
-    wrap.appendChild(settingRow('عدد البطاقات في كل صف', null, selectControl(
-      [1, 2, 3, 4, 5, 6].map((n) => [n, n + ' أعمدة']), s.cols,
-      (v) => { s.cols = Number(v); applySettings(); save(); })));
-    const row = el('div', 'row end');
-    const close = el('button', 'btn', 'تم');
-    close.type = 'button';
-    close.onclick = closeModal;
-    row.appendChild(close);
-    wrap.appendChild(row);
-    openModal(wrap, true);
+    wrap.appendChild(el('p', 'sub', 'اختر عدد البطاقات في كل صف'));
+    const opts = el('div', 'cols-opts');
+    const buttons = [];
+    for (let n = 1; n <= 6; n++) {
+      const btn = el('button', 'cols-opt');
+      btn.type = 'button';
+      const bars = el('span', 'bars');
+      for (let i = 0; i < n; i++) bars.appendChild(el('i'));
+      btn.appendChild(bars);
+      btn.appendChild(el('span', '', String(n)));
+      btn.setAttribute('aria-pressed', String(st.cols === n));
+      btn.onclick = () => {
+        st.cols = n;
+        applySettings();
+        save();
+        buttons.forEach((x) => x.setAttribute('aria-pressed', String(x === btn)));
+      };
+      buttons.push(btn);
+      opts.appendChild(btn);
+    }
+    wrap.appendChild(opts);
+    const done = el('button', 'done-btn', 'تم');
+    done.type = 'button';
+    done.onclick = closeModal;
+    wrap.appendChild(done);
+    openModal(wrap);
+    $('#modal').classList.add('sheet');
   }
 
   function openSettings() {
@@ -844,7 +868,7 @@
 
     sec('عن التطبيق');
     const about = el('div', 'about');
-    about.appendChild(el('p', '', 'الإصدار: HtmlSmart Web 1.7 (مطابق لتطبيق الأندرويد 3.5.25)'));
+    about.appendChild(el('p', '', 'الإصدار: HtmlSmart Web 1.8 (مطابق لتطبيق الأندرويد 3.5.25)'));
     about.appendChild(el('p', '', 'التقنيات: HTML و CSS و JavaScript و IndexedDB و JSZip'));
     wrap.appendChild(about);
 
@@ -1046,6 +1070,12 @@
     $('#modalBg').addEventListener('click', closeModal);
   }
 
+  /** يربط حدثاً بعنصر إن وُجد فقط، حتى لا يوقف الغياب باقي التهيئة */
+  function on(sel, ev, fn) {
+    const n = $(sel);
+    if (n) n.addEventListener(ev, fn);
+  }
+
   // ---------- التهيئة ----------
   async function init() {
     const saved = await HSStorage.read();
@@ -1061,15 +1091,16 @@
     applySettings();
     render();
 
-    $('#btnMenu').addEventListener('click', openDrawer);
-    $('#btnFull').addEventListener('click', toggleFullscreen);
+    on('#btnMenu', 'click', openDrawer);
+    on('#btnCols', 'click', openColumns);
+    on('#btnFull', 'click', toggleFullscreen);
     document.addEventListener('fullscreenchange', updateFullIcon);
     updateFullIcon();
     document.addEventListener('visibilitychange', syncWakeLock);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkRemoteBackup(); });
     checkRemoteBackup();
-    $('#search').addEventListener('input', render);
-    $('#viewerBack').addEventListener('click', closeViewer);
+    on('#search', 'input', render);
+    on('#viewerBack', 'click', closeViewer);
     bindDrawer();
 
     document.addEventListener('keydown', (e) => {

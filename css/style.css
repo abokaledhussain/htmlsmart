@@ -208,3 +208,37 @@ button { cursor: pointer; }
 .brand-tech { font-size: 0.85em; }
 
 .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); max-width: calc(100vw - 32px); background: var(--primary); color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 14px; box-shadow: 0 6px 20px rgba(0,0,0,.25); z-index: 100; }
+
+/* ---------- نافذة عدد الأعمدة (طابع إسلامي) ---------- */
+.modal.sheet {
+  width: min(400px, calc(100vw - 24px)); padding: 34px 22px 22px;
+  background-color: #0f1a3a;
+  background-image:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cpath d='M32 6 L38 26 L58 32 L38 38 L32 58 L26 38 L6 32 L26 26 Z' fill='none' stroke='%23c9a227' stroke-opacity='.12'/%3E%3C/svg%3E"),
+    linear-gradient(175deg, #13204a 0%, #1a1f4d 55%, #0c1430 100%);
+  border: 1.5px solid rgba(201, 162, 39, .6);
+  border-radius: 200px 200px 30px 30px / 110px 110px 30px 30px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, .55), inset 0 0 0 5px rgba(201, 162, 39, .08);
+  color: #f5e9c8;
+}
+.sheet-inner { text-align: center; }
+.sheet .ornament { color: #e9c46a; width: 52px; height: 52px; margin: 0 auto 6px; }
+.sheet .ornament svg { width: 100%; height: 100%; }
+.sheet h2 { color: #e9c46a; font-size: 20px; margin: 0 0 2px; }
+.sheet .sub { color: #b9b08a; font-size: 13px; margin: 0 0 18px; }
+.cols-opts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.cols-opt {
+  display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 12px 6px; width: auto; margin: 0;
+  border-radius: 18px; border: 1px solid rgba(201, 162, 39, .35); background: rgba(255, 255, 255, .04); color: #f5e9c8;
+  font-weight: 800; font-size: 15px;
+}
+.cols-opt .bars { display: flex; gap: 3px; height: 26px; width: 40px; justify-content: center; }
+.cols-opt .bars i { flex: 1; max-width: 9px; background: currentColor; border-radius: 3px; opacity: .85; }
+.cols-opt[aria-pressed="true"] {
+  background: linear-gradient(135deg, #e9c46a, #8a6d12); color: #0f1a3a; border-color: #f3d98a;
+  box-shadow: 0 6px 16px -6px rgba(201, 162, 39, .7);
+}
+.sheet .done-btn {
+  margin-top: 20px; width: 100%; padding: 13px; border: 0; border-radius: 16px; cursor: pointer;
+  background: linear-gradient(135deg, #e9c46a, #8a6d12); color: #0f1a3a; font-weight: 800; font-size: 16px;
+}
