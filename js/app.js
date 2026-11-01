@@ -615,7 +615,6 @@
 
   function closeOverlays() {
     closeModal();
-    closeDrawer();
   }
 
   function confirmBox(message, okText, onOk) {
@@ -868,7 +867,7 @@
 
     sec('عن التطبيق');
     const about = el('div', 'about');
-    about.appendChild(el('p', '', 'الإصدار: HtmlSmart Web 1.8 (مطابق لتطبيق الأندرويد 3.5.25)'));
+    about.appendChild(el('p', '', 'الإصدار: HtmlSmart Web 1.9 (مطابق لتطبيق الأندرويد 3.5.25)'));
     about.appendChild(el('p', '', 'التقنيات: HTML و CSS و JavaScript و IndexedDB و JSZip'));
     wrap.appendChild(about);
 
@@ -1049,24 +1048,7 @@
     setTimeout(() => t.remove(), 4000);
   }
 
-  // ---------- القائمة الجانبية ----------
-  function openDrawer() {
-    $('#drawer').classList.add('open');
-    $('#drawerBg').classList.remove('hidden');
-  }
-  function closeDrawer() {
-    $('#drawer').classList.remove('open');
-    $('#drawerBg').classList.add('hidden');
-  }
-
-  function bindDrawer() {
-    $('#drawer').addEventListener('click', (e) => {
-      const b = e.target.closest('button[data-act]');
-      if (!b) return;
-      closeDrawer();
-      if (b.dataset.act === 'columns') openColumns();
-    });
-    $('#drawerBg').addEventListener('click', () => { closeDrawer(); closeModal(); });
+  function bindOverlays() {
     $('#modalBg').addEventListener('click', closeModal);
   }
 
@@ -1091,7 +1073,6 @@
     applySettings();
     render();
 
-    on('#btnMenu', 'click', openDrawer);
     on('#btnCols', 'click', openColumns);
     on('#btnFull', 'click', toggleFullscreen);
     document.addEventListener('fullscreenchange', updateFullIcon);
@@ -1101,12 +1082,11 @@
     checkRemoteBackup();
     on('#search', 'input', render);
     on('#viewerBack', 'click', closeViewer);
-    bindDrawer();
+    bindOverlays();
 
     document.addEventListener('keydown', (e) => {
       if (e.key !== 'Escape') return;
       if (!$('#modal').classList.contains('hidden')) closeModal();
-      else if (!$('#drawer').classList.contains('hidden') && $('#drawer').classList.contains('open')) closeDrawer();
       else if (!$('#viewer').classList.contains('hidden')) closeViewer();
     });
 
