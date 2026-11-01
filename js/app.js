@@ -125,7 +125,7 @@
     card.setAttribute('aria-label', page.title);
     card.appendChild(iconNode(page));
     card.appendChild(el('div', 'label', page.title));
-    bindPress(card, () => openPage(page), () => openPageMenu(page));
+    bindPress(card, () => openPage(page));
     return card;
   }
 
@@ -153,31 +153,16 @@
     thumb.appendChild(box);
     card.appendChild(thumb);
     card.appendChild(el('div', 'label', folder.name));
-    bindPress(card, () => openFolder(folder), () => openFolderMenu(folder));
+    bindPress(card, () => openFolder(folder));
     return card;
   }
 
-  /** نقرة قصيرة تفتح، والضغط المطول أو الزر الأيمن يفتح القائمة */
-  function bindPress(node, onTap, onLong) {
-    let timer = null;
-    node.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0) return;
-      longFired = false;
-      clearTimeout(timer);
-      timer = setTimeout(() => { longFired = true; onLong(); }, LONG_PRESS_MS);
-    });
-    const cancel = () => clearTimeout(timer);
-    node.addEventListener('pointerup', cancel);
-    node.addEventListener('pointerleave', cancel);
-    node.addEventListener('pointercancel', cancel);
-    node.addEventListener('click', () => {
-      if (longFired) { longFired = false; return; }
-      onTap();
-    });
+  /** النقر يفتح العنصر، ولا توجد قوائم خيارات أو تعديل أو حذف */
+  function bindPress(node, onTap) {
+    node.addEventListener('click', onTap);
     node.addEventListener('keydown', (e) => {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onTap(); }
     });
-    node.addEventListener('contextmenu', (e) => { e.preventDefault(); onLong(); });
   }
 
   function render() {
@@ -198,7 +183,7 @@
       grid.appendChild(it.type === 'page' ? pageCard(it.page) : folderCard(it.folder));
     }
 
-    $('#empty').textContent = 'لا توجد صفحات بعد. اضغط + لإضافة صفحة.';
+    $('#empty').textContent = 'لا توجد صفحات بعد.';
     $('#empty').classList.toggle('hidden', items.length > 0);
     $('#brandFoot').classList.remove('hidden');
   }
@@ -307,7 +292,6 @@
     $('#viewerTitle').textContent = page.title;
     $('#viewerFrame').srcdoc = buildDoc(page);
     $('#viewer').classList.remove('hidden');
-    $('#viewerEdit').onclick = () => { closeViewer(); openEditor(page); };
   }
 
   function closeViewer() {
@@ -404,7 +388,6 @@
       $('#viewerTitle').textContent = titleIn.value.trim() || 'معاينة';
       $('#viewerFrame').srcdoc = buildDoc(null, d);
       $('#viewer').classList.remove('hidden');
-      $('#viewerEdit').onclick = () => { closeViewer(); openEditor(page, afterSave); };
     };
     saveBtn.onclick = () => {
       areas[current] = area.value;
@@ -754,6 +737,23 @@
     return row;
   }
 
+  /** نافذة تغيير عدد الأعمدة فقط */
+  function openColumns() {
+    const s = state.settings;
+    const wrap = el('div');
+    wrap.appendChild(el('h2', '', 'عدد الأعمدة'));
+    wrap.appendChild(settingRow('عدد البطاقات في كل صف', null, selectControl(
+      [1, 2, 3, 4, 5, 6].map((n) => [n, n + ' أعمدة']), s.cols,
+      (v) => { s.cols = Number(v); applySettings(); save(); })));
+    const row = el('div', 'row end');
+    const close = el('button', 'btn', 'تم');
+    close.type = 'button';
+    close.onclick = closeModal;
+    row.appendChild(close);
+    wrap.appendChild(row);
+    openModal(wrap, true);
+  }
+
   function openSettings() {
     const s = state.settings;
     const wrap = el('div');
@@ -1040,16 +1040,7 @@
       const b = e.target.closest('button[data-act]');
       if (!b) return;
       closeDrawer();
-      switch (b.dataset.act) {
-        case 'home': closeViewer(); window.scrollTo(0, 0); render(); break;
-        case 'new': openEditor(null); break;
-        case 'newFolder': createFolder(); break;
-        case 'columns': openSettings(true); break;
-        case 'settings': openSettings(false); break;
-        case 'sync': openSync(); break;
-        case 'backup': openBackup(); break;
-        case 'restore': openRestore(); break;
-      }
+      if (b.dataset.act === 'columns') openColumns();
     });
     $('#drawerBg').addEventListener('click', () => { closeDrawer(); closeModal(); });
     $('#modalBg').addEventListener('click', closeModal);
@@ -1071,7 +1062,6 @@
     render();
 
     $('#btnMenu').addEventListener('click', openDrawer);
-    $('#btnAdd').addEventListener('click', () => openEditor(null));
     $('#btnFull').addEventListener('click', toggleFullscreen);
     document.addEventListener('fullscreenchange', updateFullIcon);
     updateFullIcon();

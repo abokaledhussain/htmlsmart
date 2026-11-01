@@ -13,9 +13,6 @@
       <button class="icon-btn" id="btnFull" aria-label="ملء الشاشة">
         <svg id="fullIcon" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
       </button>
-      <button class="icon-btn" id="btnAdd" aria-label="إضافة صفحة">
-        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-      </button>
     </div>
     <h1 class="title">HtmlSmart</h1>
     <button class="icon-btn" id="btnMenu" aria-label="القائمة">
@@ -28,7 +25,7 @@
 </header>
 
 <main id="grid" class="grid" aria-live="polite"></main>
-<p id="empty" class="empty hidden">لا توجد صفحات بعد. اضغط + لإضافة صفحة.</p>
+<p id="empty" class="empty hidden">لا توجد صفحات بعد.</p>
 <footer id="brandFoot" class="brand-foot hidden">
   <div class="brand-author">برمجة حسين العرياني 💫</div>
   <div class="brand-app">HTML Smart Pro</div>
@@ -40,18 +37,8 @@
 <nav id="drawer" class="drawer" aria-label="القائمة الجانبية">
   <div class="drawer-head">HtmlSmart</div>
   <div class="drawer-body">
-    <div class="sec">التنقل</div>
-    <button data-act="home">🏠 الرئيسية</button>
-    <button data-act="new">＋ إضافة صفحة جديدة</button>
-    <button data-act="newFolder">📂 إنشاء مجلد جديد</button>
-    <div class="sec">العرض والمظهر</div>
+    <div class="sec">العرض</div>
     <button data-act="columns">▦ عدد الأعمدة</button>
-    <button data-act="settings">⚙ الإعدادات</button>
-    <div class="sec">المزامنة</div>
-    <button data-act="sync">🔄 المزامنة بين الأجهزة</button>
-    <div class="sec">إدارة البيانات</div>
-    <button data-act="backup">☁ نسخ احتياطي</button>
-    <button data-act="restore">↺ استعادة نسخة احتياطية</button>
   </div>
 </nav>
 
@@ -66,9 +53,6 @@
       <svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg>
     </button>
     <span id="viewerTitle" class="viewer-title"></span>
-    <button class="icon-btn" id="viewerEdit" aria-label="تعديل">
-      <svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16v4zM14 6l4 4"/></svg>
-    </button>
   </div>
   <iframe id="viewerFrame" class="viewer-frame" sandbox="allow-scripts allow-forms allow-modals allow-popups" title="محتوى الصفحة"></iframe>
 </section>
