@@ -8,26 +8,24 @@
 </head>
 <body>
 <header class="toolbar">
-  <button class="icon-btn" id="btnMenu" aria-label="القائمة">
-    <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
-  </button>
-  <div class="title-wrap">
-    <small class="greet">مرحباً</small>
+  <div class="bar">
+    <div class="bar-start">
+      <button class="icon-btn" id="btnFull" aria-label="ملء الشاشة">
+        <svg id="fullIcon" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+      </button>
+      <button class="icon-btn" id="btnAdd" aria-label="إضافة صفحة">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+      </button>
+    </div>
     <h1 class="title">HtmlSmart</h1>
+    <button class="icon-btn" id="btnMenu" aria-label="القائمة">
+      <svg viewBox="0 0 24 24"><path d="M3 6h18M3 12h18M3 18h18"/></svg>
+    </button>
   </div>
-  <div class="bar-end">
-    <button class="icon-btn" id="btnAdd" aria-label="إضافة صفحة">
-      <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
-    </button>
-    <button class="icon-btn" id="btnFull" aria-label="ملء الشاشة">
-      <svg id="fullIcon" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
-    </button>
+  <div class="search-wrap">
+    <input id="search" type="search" placeholder="بحث عن تطبيق..." autocomplete="off">
   </div>
 </header>
-
-<div class="search-wrap">
-  <input id="search" type="search" placeholder="بحث عن تطبيق..." autocomplete="off">
-</div>
 
 <main id="grid" class="grid" aria-live="polite"></main>
 <p id="empty" class="empty hidden">لا توجد صفحات بعد. اضغط + لإضافة صفحة.</p>

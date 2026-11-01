@@ -197,8 +197,7 @@
     for (const it of items) {
       grid.appendChild(it.type === 'page' ? pageCard(it.page) : folderCard(it.folder));
     }
-    // البطاقة الأولى تأخذ مساحة أكبر عند 3 أعمدة أو أكثر (تصميم ج)
-    if (state.settings.cols >= 3 && grid.firstElementChild) grid.firstElementChild.classList.add('feat');
+
     $('#empty').textContent = 'لا توجد صفحات بعد. اضغط + لإضافة صفحة.';
     $('#empty').classList.toggle('hidden', items.length > 0);
     $('#brandFoot').classList.remove('hidden');
@@ -845,7 +844,7 @@
 
     sec('عن التطبيق');
     const about = el('div', 'about');
-    about.appendChild(el('p', '', 'الإصدار: HtmlSmart Web 1.6 (مطابق لتطبيق الأندرويد 3.5.25)'));
+    about.appendChild(el('p', '', 'الإصدار: HtmlSmart Web 1.7 (مطابق لتطبيق الأندرويد 3.5.25)'));
     about.appendChild(el('p', '', 'التقنيات: HTML و CSS و JavaScript و IndexedDB و JSZip'));
     wrap.appendChild(about);
 
