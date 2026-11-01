@@ -13,9 +13,6 @@
 
   const LONG_PRESS_MS = 500;
   const DEFAULT_HTML = '<h1>مرحباً</h1>\n<p>صفحة جديدة</p>';
-  const ICONS = {
-    more: '<svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="1.6" fill="currentColor"/><circle cx="12" cy="12" r="1.6" fill="currentColor"/><circle cx="12" cy="19" r="1.6" fill="currentColor"/></svg>'
-  };
 
   const $ = (sel) => document.querySelector(sel);
   const el = (tag, cls, text) => {
@@ -128,22 +125,16 @@
     card.setAttribute('aria-label', page.title);
     card.appendChild(iconNode(page));
     card.appendChild(el('div', 'label', page.title));
-    const more = el('button', 'more');
-    more.innerHTML = ICONS.more;
-    more.setAttribute('aria-label', 'خيارات');
-    more.addEventListener('click', (e) => { e.stopPropagation(); openPageMenu(page); });
-    card.appendChild(more);
     bindPress(card, () => openPage(page), () => openPageMenu(page));
     return card;
   }
 
   function folderCard(folder) {
-    const card = el('div', 'card');
+    const card = el('div', 'card folder-card');
     card.tabIndex = 0;
     card.setAttribute('role', 'button');
     card.setAttribute('aria-label', folder.name);
     const thumb = el('div', 'thumb');
-    thumb.style.borderRadius = '22px';
     const box = el('div', 'folder-thumb');
     box.style.width = '100%';
     box.style.height = '100%';
