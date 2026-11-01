@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#8FBFA0">
+  <title>القرآن الكريم</title>
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <!-- الشريط العلوي: الفهرس والإعدادات دائمًا ظاهرين -->
+  <header id="topbar">
+    <button id="open-index" class="icon-btn" type="button" aria-label="الفهرس">الفهرس</button>
+    <div id="juz" class="juz-label">الجزء ١</div>
+    <div id="title">القرآن الكريم</div>
+    <button id="open-search" class="icon-btn" type="button" aria-label="بحث" title="بحث">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="11" cy="11" r="7" fill="none" stroke="currentColor" stroke-width="2.4"/><path d="M20 20 L16.5 16.5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>
+    </button>
+    <button id="open-settings" class="icon-btn" type="button" aria-label="الإعدادات">⚙</button>
+    <button id="toggle-fullscreen" class="icon-btn" type="button" aria-label="ملء الشاشة" title="ملء الشاشة" hidden>⛶</button>
+  </header>
+
+  <!-- المصحف -->
+  <main id="reader">
+    <div id="pages"></div>
+  </main>
+
+  <!-- شريط التمرير التلقائي: يظهر بالضغط على الصفحة -->
+  <div id="scrollbar" class="bar" hidden>
+    <div class="bar-row">
+      <button id="scroll-close" type="button" aria-label="إغلاق">✕</button>
+      <button id="scroll-minus" type="button" aria-label="أبطئ">−</button>
+      <div id="scroll-speed" class="label">شريط التمرير · السرعة ٣</div>
+      <button id="scroll-plus" type="button" aria-label="أسرع">+</button>
+      <button id="scroll-play" class="primary" type="button" aria-label="تشغيل التمرير">▶</button>
+    </div>
+  </div>
+
+  <!-- شريط التلاوة -->
+  <div id="audiobar" class="bar" hidden>
+    <div class="bar-row">
+      <button id="audio-close" type="button" aria-label="إغلاق">✕</button>
+      <button id="audio-next" type="button" aria-label="التالية">التالية</button>
+      <div id="audio-label" class="label"></div>
+      <button id="audio-prev" type="button" aria-label="السابقة">السابقة</button>
+      <button id="audio-play" class="primary" type="button" aria-label="تشغيل">▶</button>
+    </div>
+  </div>
+
+  <!-- شاشة الفهرس -->
+  <section id="index-screen" class="screen" hidden>
+    <div class="screen-head">
+      <button id="index-back" class="icon-btn" type="button" aria-label="رجوع">‹</button>
+      <h1>الفهرس</h1>
+      <button id="index-bookmarks" class="icon-btn" type="button" aria-label="علامات القراءة">🏷</button>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button id="tab-surah" class="tab active" type="button" role="tab">سورة</button>
+      <button id="tab-juz" class="tab" type="button" role="tab">الجزء</button>
+      <button id="tab-goto" class="tab" type="button" role="tab">اذهب إلى</button>
+    </nav>
+    <div class="screen-body">
+      <div id="index-list"></div>
+    </div>
+  </section>
+
+  <!-- شاشة الإعدادات -->
+  <section id="settings-screen" class="screen" hidden>
+    <div class="screen-head">
+      <button id="settings-back" class="icon-btn" type="button" aria-label="رجوع">‹</button>
+      <h1>الإعدادات</h1>
+      <span style="width:44px"></span>
+    </div>
+    <div class="screen-body">
+      <div class="set-section">
+        <h2 class="set-title">حجم خط الآيات</h2>
+        <div class="set-body">
+          <div id="font-label">الحجم: 50%</div>
+          <input id="font-range" type="range" min="1" max="200" value="50" style="width:100%">
+        </div>
+      </div>
+
+      <div class="set-section">
+        <h2 class="set-title">التجويد</h2>
+        <div class="set-body">
+          <label class="radio-line"><input type="radio" name="taj" value="0"> إيقاف التجويد</label>
+          <label class="radio-line"><input type="radio" name="taj" value="1" checked> أخضر وأزرق (الغنة والقلقلة)</label>
+          <label class="radio-line"><input type="radio" name="taj" value="2"> كامل</label>
+        </div>
+      </div>
+
+      <div class="set-section">
+        <h2 class="set-title">القارئ للتلاوة</h2>
+        <div class="set-body">
+          <select id="reciter" class="field"></select>
+        </div>
+      </div>
+
+      <div class="set-section">
+        <h2 class="set-title">المظهر</h2>
+        <div class="set-body">
+          <div id="theme-row" class="theme-row"></div>
+        </div>
+      </div>
+
+      <div class="set-body" style="display:flex;gap:8px">
+        <button id="settings-save" class="btn btn-primary" type="button" style="flex:1">حفظ</button>
+        <button id="settings-cancel" class="btn" type="button" style="flex:1">إلغاء</button>
+      </div>
+
+      <p class="credit">برمجة <span class="gold">حسين العرياني</span></p>
+      <p class="version">الإصدار 1.48.4</p>
+    </div>
+  </section>
+
+  <!-- البيانات -->
+  <script src="data/qcf_pages.js"></script>
+  <script src="data/surahs.js"></script>
+  <script src="data/reciters.js"></script>
+
+  <!-- المكتبات -->
+  <script src="js/lib/storage.js"></script>
+  <script src="js/lib/util.js"></script>
+  <script src="js/lib/fontscale.js"></script>
+  <script src="js/lib/names.js"></script>
+  <script src="js/lib/tajweed.js"></script>
+  <script src="js/lib/quran-data.js"></script>
+  <script src="js/lib/search.js"></script>
+  <script src="js/lib/layout.js"></script>
+  <script src="js/lib/audio.js"></script>
+  <script src="js/lib/tafsir.js"></script>
+  <script src="js/lib/bookmarks.js"></script>
+
+  <!-- الواجهة -->
+  <script src="js/ui/dialogs.js"></script>
+  <script src="js/ui/reader.js"></script>
+  <script src="js/ui/actions.js"></script>
+  <script src="js/ui/search.js"></script>
+  <script src="js/ui/extras.js"></script>
+  <script src="js/ui/index.js"></script>
+  <script src="js/ui/settings.js"></script>
+  <script src="js/ui/app.js"></script>
+</body>
+</html>

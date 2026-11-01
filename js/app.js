@@ -165,6 +165,24 @@
     });
   }
 
+  // بطاقة القرآن ثابتة في الكود (ليست في البيانات)، فلا تتأثر بالاستعادة أو الاستبدال
+  function quranCard() {
+    const a = document.createElement('a');
+    a.className = 'card qcard';
+    a.href = 'quran/quran.html';
+    const thumb = document.createElement('div');
+    thumb.className = 'thumb';
+    const img = document.createElement('img');
+    img.src = 'quran-icon.jpg';
+    img.alt = '';
+    thumb.appendChild(img);
+    const label = document.createElement('div');
+    label.className = 'label';
+    label.textContent = 'القرآن الكريم';
+    a.append(thumb, label);
+    return a;
+  }
+
   function render() {
     const grid = $('#grid');
     const query = $('#search').value.trim().toLowerCase();
@@ -179,6 +197,7 @@
       return;
     }
     const items = homeItems();
+    grid.appendChild(quranCard());
     for (const it of items) {
       grid.appendChild(it.type === 'page' ? pageCard(it.page) : folderCard(it.folder));
     }
@@ -867,7 +886,7 @@
 
     sec('عن التطبيق');
     const about = el('div', 'about');
-    about.appendChild(el('p', '', 'الإصدار: HtmlSmart Web 1.9 (مطابق لتطبيق الأندرويد 3.5.25)'));
+    about.appendChild(el('p', '', 'الإصدار: HtmlSmart Web 1.10 (مطابق لتطبيق الأندرويد 3.5.25)'));
     about.appendChild(el('p', '', 'التقنيات: HTML و CSS و JavaScript و IndexedDB و JSZip'));
     wrap.appendChild(about);
 

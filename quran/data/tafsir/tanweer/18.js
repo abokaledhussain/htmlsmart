@@ -1,0 +1,1 @@
+TAFSIR_LOAD("tanweer",18,"H4sICKtv5GoC/zE4Lmpzb24Ai1ZS0lEYxUMNxwIAwCvrorgBAAA=");

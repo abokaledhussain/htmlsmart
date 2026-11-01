@@ -96,6 +96,7 @@ button { cursor: pointer; }
   min-height: 2.7em; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
 }
 .folder-card .thumb { background: var(--surface); }
+.qcard { text-decoration: none; color: inherit; -webkit-tap-highlight-color: transparent; }
 .grid { grid-auto-flow: dense; }
 .folder-thumb { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; padding: 11px; background: transparent; width: 100%; height: 100%; }
 .folder-thumb .mini { background: var(--surface); border-radius: 10px; overflow: hidden; display: grid; place-items: center; font-size: 14px; }
