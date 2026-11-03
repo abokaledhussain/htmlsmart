@@ -238,6 +238,17 @@
     }
   }
 
+  // ---------- منع التكبير بالإصبع ----------
+  // iOS Safari يتجاهل user-scalable=no، لذلك نمنع إيماءات التكبير يدوياً
+  (function blockPinchZoom() {
+    const stop = e => e.preventDefault();
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach(ev =>
+      document.addEventListener(ev, stop, { passive: false }));
+    document.addEventListener('touchmove', e => {
+      if (e.touches && e.touches.length > 1) e.preventDefault();
+    }, { passive: false });
+  })();
+
   // ---------- ملء الشاشة ----------
   function toggleFullscreen() {
     const root = document.documentElement;
