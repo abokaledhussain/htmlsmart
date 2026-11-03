@@ -1104,7 +1104,20 @@
     render();
 
     on('#btnCols', 'click', openColumns);
-    on('#btnFull', 'click', toggleFullscreen);
+    // iPhone/iPad Safari لا يدعم Fullscreen API للصفحات العادية، والتطبيق المضاف للشاشة
+    // الرئيسية يعمل بملء الشاشة أصلاً، فيُخفى الزر في الحالتين بدل أن يبدو معطلاً
+    const fsSupported =
+      !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen) &&
+      !!(document.fullscreenEnabled || document.webkitFullscreenEnabled);
+    const alreadyStandalone =
+      window.navigator.standalone === true ||
+      (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    if (!fsSupported || alreadyStandalone) {
+      const fb = $('#btnFull');
+      if (fb) fb.style.display = 'none';
+    } else {
+      on('#btnFull', 'click', toggleFullscreen);
+    }
     document.addEventListener('fullscreenchange', updateFullIcon);
     updateFullIcon();
     document.addEventListener('visibilitychange', syncWakeLock);
