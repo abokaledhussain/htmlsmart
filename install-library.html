@@ -170,11 +170,30 @@
     }
   });
 
-  document.getElementById("save").addEventListener("click", () => {
+  document.getElementById("save").addEventListener("click", async () => {
     try{
+      const xml = buildXml();
+      const doc = new DOMParser().parseFromString(xml, "application/xml");
+      if(doc.getElementsByTagName("parsererror").length) throw new Error("bad xml");
+      const fileName = "مكتبتي.mobileconfig";
+      /* نوع عام حتى لا يفتح iOS نافذة التثبيت بدل الحفظ */
+      const file = new File([xml], fileName, { type: "application/octet-stream" });
+
+      /* على iPhone تظهر ورقة المشاركة فيها خيار "حفظ في الملفات" */
+      if(navigator.canShare && navigator.canShare({ files: [file] })){
+        try{
+          await navigator.share({ files: [file], title: fileName });
+          msg("اختر «حفظ في الملفات» من القائمة.");
+          return;
+        }catch(e){
+          if(e && e.name === "AbortError") return;
+        }
+      }
+
+      /* احتياط للمتصفحات التي لا تدعم المشاركة */
       const a = document.createElement("a");
-      a.href = makeUrl();
-      a.download = "مكتبتي.mobileconfig";
+      a.href = URL.createObjectURL(file);
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       a.remove();
