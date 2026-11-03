@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
   <meta name="theme-color" content="#8FBFA0">
   <title>القرآن الكريم</title>
   <link rel="stylesheet" href="css/fonts.css">
@@ -142,5 +142,16 @@
   <script src="js/ui/index.js"></script>
   <script src="js/ui/settings.js"></script>
   <script src="js/ui/app.js"></script>
+  <script>
+    /* منع التكبير بالإصبع: iOS Safari يتجاهل user-scalable=no */
+    (function () {
+      ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (ev) {
+        document.addEventListener(ev, function (e) { e.preventDefault(); }, { passive: false });
+      });
+      document.addEventListener('touchmove', function (e) {
+        if (e.touches && e.touches.length > 1) e.preventDefault();
+      }, { passive: false });
+    })();
+  </script>
 </body>
 </html>
