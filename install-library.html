@@ -15,6 +15,10 @@
   #install{background:#fff;color:#1E1B4B}
   #save{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.7)}
   #msg{min-height:1.2em;font-size:.9rem;opacity:.85;margin-top:8px}
+  .steps{display:none;background:rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;margin-top:18px;text-align:right;font-size:.95rem;line-height:1.9}
+  .steps.show{display:block}
+  .steps h2{font-size:1rem;margin:0 0 8px}
+  .steps ol{margin:0;padding-right:20px}
   #inapp{display:none;background:#fff3c4;color:#4a3800;border-radius:12px;padding:12px;margin-bottom:16px;font-size:.92rem;line-height:1.8}
 </style>
 </head>
@@ -26,6 +30,16 @@
   <button id="install" type="button">تثبيت</button>
   <button id="save" type="button">حفظ ملف</button>
   <div id="msg"></div>
+  <div id="steps" class="steps">
+    <h2>أكمل التثبيت من الإعدادات</h2>
+    <ol>
+      <li>اضغط <b>إغلاق</b> في نافذة «تم تنزيل ملف التعريف».</li>
+      <li>افتح <b>الإعدادات</b>، وستجد في الأعلى سطر <b>تم تنزيل ملف تعريف</b>، اضغط عليه.</li>
+      <li>اضغط <b>تثبيت</b> في أعلى الشاشة، ثم أدخل رمز القفل.</li>
+      <li>اضغط <b>تثبيت</b> مرة أخرى، ثم اضغط <b>تم</b>.</li>
+      <li>ارجع إلى الشاشة الرئيسية، وستجد أيقونة <b>مكتبتي</b>.</li>
+    </ol>
+  </div>
 </div>
 <script>
 (function(){
@@ -130,6 +144,10 @@
 
   function msg(t){ document.getElementById("msg").textContent = t; }
 
+  function showSteps(){
+    document.getElementById("steps").classList.add("show");
+  }
+
   /* تنبيه عند فتح الصفحة من داخل تطبيقات مثل واتساب أو فيسبوك أو إنستغرام */
   if(/WhatsApp|FBAN|FBAV|Instagram|Line\/|Snapchat|Twitter/i.test(navigator.userAgent)){
     document.getElementById("inapp").style.display = "block";
@@ -138,6 +156,7 @@
   document.getElementById("install").addEventListener("click", () => {
     try{
       msg("");
+      showSteps();
       window.location.href = makeUrl();
     }catch(e){
       msg("تعذّر إنشاء ملف التثبيت.");
@@ -153,6 +172,7 @@
       a.click();
       a.remove();
       msg("تم حفظ الملف.");
+      showSteps();
     }catch(e){
       msg("تعذّر حفظ الملف.");
     }
