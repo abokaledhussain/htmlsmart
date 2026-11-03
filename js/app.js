@@ -303,7 +303,25 @@
     return out;
   }
 
+  // يُحقن في كل صفحة تُعرض داخل المكتبة لمنع التكبير بالإصبع (iOS يتجاهل user-scalable=no)
+  const NO_ZOOM_SCRIPT = '<script>(function(){' +
+    "['gesturestart','gesturechange','gestureend'].forEach(function(ev){" +
+    "document.addEventListener(ev,function(e){e.preventDefault();},{passive:false});});" +
+    "document.addEventListener('touchmove',function(e){" +
+    "if(e.touches&&e.touches.length>1)e.preventDefault();},{passive:false});" +
+    '})();</script>';
+
+  function withNoZoom(doc) {
+    return /<head[\s>]/i.test(doc)
+      ? doc.replace(/<head([^>]*)>/i, '<head$1>' + NO_ZOOM_SCRIPT)
+      : NO_ZOOM_SCRIPT + doc;
+  }
+
   function buildDoc(page, draft) {
+    return withNoZoom(buildDocRaw(page, draft));
+  }
+
+  function buildDocRaw(page, draft) {
     const assets = draft ? draft.assets : (page && page.assets);
     const html = rewriteAssets(draft ? draft.html : page.html, assets);
     const css = rewriteAssets(draft ? draft.css : page.css, assets);
