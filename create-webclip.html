@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>صانع اختصار التطبيق</title>
+<style>
+  *{box-sizing:border-box}
+  body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(160deg,#1E1B4B,#0F172A);font-family:system-ui,-apple-system,"Segoe UI",Tahoma,sans-serif;color:#fff;padding:16px}
+  .box{text-align:center;width:100%;max-width:360px}
+  h1{font-size:1.3rem;margin:0 0 18px}
+  .preview{width:110px;height:110px;margin:0 auto 14px;border-radius:24px;background:rgba(255,255,255,.1);
+    border:1.5px dashed rgba(255,255,255,.45);display:flex;align-items:center;justify-content:center;overflow:hidden;font-size:.85rem;opacity:.9}
+  .preview img{width:100%;height:100%;object-fit:cover}
+  label{display:block;text-align:right;font-size:.9rem;margin-bottom:12px;opacity:.95}
+  input{display:block;width:100%;margin-top:6px;padding:12px;border-radius:12px;border:0;font:inherit;color:#1E1B4B;background:#fff}
+  input[type=file]{background:rgba(255,255,255,.12);color:#fff;font-size:.85rem;padding:10px}
+  button{display:block;width:100%;font:inherit;font-size:1.05rem;font-weight:700;padding:14px;border-radius:14px;border:0;cursor:pointer;margin-bottom:12px}
+  #install{background:#fff;color:#1E1B4B}
+  #save{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.7)}
+  #msg{min-height:1.2em;font-size:.9rem;margin:6px 0 10px;line-height:1.6}
+  #msg.err{color:#ffb4a8}
+  .steps{background:rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;margin-top:8px;text-align:right;font-size:.92rem;line-height:1.9}
+  .steps h2{font-size:1rem;margin:0 0 6px}
+  .steps ol{margin:0;padding-right:20px}
+  .steps .note{margin:10px 0 0;opacity:.85;font-size:.85rem}
+  .author{margin-top:14px;font-size:.85rem;opacity:.75}
+</style>
+</head>
+<body>
+<div class="box">
+  <h1>صانع اختصار التطبيق</h1>
+
+  <div class="preview" id="preview">بدون أيقونة</div>
+
+  <label>اسم التطبيق (يظهر تحت الأيقونة)
+    <input type="text" id="appName" maxlength="24" placeholder="مثال: مكتبتي">
+  </label>
+  <label>الرابط
+    <input type="url" id="appUrl" dir="ltr" placeholder="https://example.com">
+  </label>
+  <label>الأيقونة (صورة)
+    <input type="file" id="iconFile" accept="image/*">
+  </label>
+
+  <div id="msg"></div>
+
+  <button id="install" type="button">تثبيت</button>
+  <button id="save" type="button">حفظ ملف</button>
+
+  <div class="steps">
+    <h2>طريقة التثبيت</h2>
+    <ol>
+      <li>اضغط <b>تثبيت</b>، ثم اضغط <b>السماح</b> في نافذة «يحاول ... تنزيل ملف تعريف».</li>
+      <li>اضغط <b>إغلاق</b> في نافذة «تم تنزيل ملف التعريف».</li>
+      <li>افتح <b>الإعدادات</b>، واضغط على سطر <b>تم تنزيل ملف تعريف</b> في الأعلى.</li>
+      <li>اضغط <b>تثبيت</b> في أعلى الشاشة، ثم أدخل رمز القفل، ثم اضغط <b>تثبيت</b> مرة أخرى، ثم <b>تم</b>.</li>
+      <li>ارجع إلى الشاشة الرئيسية، وستجد أيقونة التطبيق.</li>
+    </ol>
+    <p class="note">إذا لم يظهر سطر «تم تنزيل ملف تعريف» في الإعدادات، اضغط <b>حفظ ملف</b>، ثم افتح الملف من تطبيق الملفات واتبع الخطوات نفسها.</p>
+  </div>
+
+  <div class="author">برمجة حسين العرياني</div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  /* ثابت لا يتغير */
+  const ORG = "برمجة حسين العرياني";
+  const IDS_KEY = "create-webclip-ids-v1";
+  const ICON_SIZE = 180;
+
+  const $ = s => document.getElementById(s);
+
+  function uuid(){
+    const b = new Uint8Array(16);
+    crypto.getRandomValues(b);
+    b[6] = (b[6] & 0x0f) | 0x40;
+    b[8] = (b[8] & 0x3f) | 0x80;
+    const h = Array.from(b, x => x.toString(16).padStart(2,"0")).join("");
+    return (h.slice(0,8)+"-"+h.slice(8,12)+"-"+h.slice(12,16)+"-"+h.slice(16,20)+"-"+h.slice(20)).toUpperCase();
+  }
+  function rhex(n){
+    const b = new Uint8Array(n);
+    crypto.getRandomValues(b);
+    return Array.from(b, x => (x % 16).toString(16)).join("");
+  }
+  function esc(s){
+    return String(s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/"/g,"&quot;").replace(/'/g,"&apos;");
+  }
+  function sVal(v){ return "<string>"+esc(v)+"</string>"; }
+  function bVal(v){ return v ? "<true/>" : "<false/>"; }
+  function iVal(v){ return "<integer>"+v+"</integer>"; }
+  function dict(pairs, ind){
+    const pad = "\t".repeat(ind);
+    return "<dict>\n" + pairs.map(([k,v]) => pad+"\t<key>"+esc(k)+"</key>\n"+pad+"\t"+v).join("\n") + "\n"+pad+"</dict>";
+  }
+  function arr(items, ind){
+    const pad = "\t".repeat(ind);
+    return "<array>\n" + items.map(x => pad+"\t"+x).join("\n") + "\n"+pad+"</array>";
+  }
+
+  /* معرّفات ثابتة في المتصفح، حتى تحدّث إعادة التثبيت الاختصار القديم بدل تكراره */
+  function getIds(){
+    try{
+      const d = JSON.parse(localStorage.getItem(IDS_KEY) || "null");
+      if(d && d.profIdent && d.profUUID && d.siteIdent && d.siteUUID) return d;
+    }catch(e){}
+    const ids = {
+      profIdent: "com.personal.profile." + rhex(8),
+      profUUID: uuid(),
+      siteIdent: "com.personal.webclip." + rhex(8),
+      siteUUID: uuid()
+    };
+    try{ localStorage.setItem(IDS_KEY, JSON.stringify(ids)); }catch(e){}
+    return ids;
+  }
+
+  let iconDataUrl = null;
+
+  function toIcon(file){
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => {
+        const img = new Image();
+        img.onload = () => {
+          const c = document.createElement("canvas");
+          c.width = c.height = ICON_SIZE;
+          const ctx = c.getContext("2d");
+          ctx.fillStyle = "#ffffff";
+          ctx.fillRect(0, 0, ICON_SIZE, ICON_SIZE);
+          const sc = Math.max(ICON_SIZE / img.width, ICON_SIZE / img.height);
+          const w = img.width * sc, h = img.height * sc;
+          ctx.drawImage(img, (ICON_SIZE - w) / 2, (ICON_SIZE - h) / 2, w, h);
+          resolve(c.toDataURL("image/png"));
+        };
+        img.onerror = () => reject(new Error("bad image"));
+        img.src = fr.result;
+      };
+      fr.onerror = () => reject(fr.error);
+      fr.readAsDataURL(file);
+    });
+  }
+
+  function msg(text, isErr){
+    const m = $("msg");
+    m.textContent = text;
+    m.className = isErr ? "err" : "";
+  }
+
+  function validate(){
+    const name = $("appName").value.trim();
+    const url = $("appUrl").value.trim();
+    if(!name) return "اكتب اسم التطبيق.";
+    let u = null;
+    try{ u = new URL(url); }catch(e){ u = null; }
+    if(!u || !/^https?:$/.test(u.protocol)) return "الرابط غير صحيح، ويجب أن يبدأ بـ https://";
+    return "";
+  }
+
+  function buildXml(){
+    const ids = getIds();
+    const name = $("appName").value.trim();
+    const url = $("appUrl").value.trim();
+
+    const sitePairs = [
+      ["FullScreen", bVal(true)],
+      ["IgnoreManifestScope", bVal(true)],
+      ["IsRemovable", bVal(true)],
+      ["Label", sVal(name)],
+      ["Precomposed", bVal(true)],
+      ["URL", sVal(url)]
+    ];
+    if(iconDataUrl){
+      sitePairs.push(["Icon", "<data>" + iconDataUrl.split(",")[1] + "</data>"]);
+    }
+    sitePairs.push(
+      ["PayloadDescription", sVal("اختصار: " + name)],
+      ["PayloadDisplayName", sVal(name)],
+      ["PayloadIdentifier", sVal(ids.siteIdent)],
+      ["PayloadType", sVal("com.apple.webClip.managed")],
+      ["PayloadUUID", sVal(ids.siteUUID)],
+      ["PayloadVersion", iVal(1)]
+    );
+    const site = dict(sitePairs, 2);
+
+    const profile = dict([
+      ["PayloadContent", arr([site], 1)],
+      ["PayloadDescription", sVal(ORG)],
+      ["PayloadDisplayName", sVal(name)],
+      ["PayloadIdentifier", sVal(ids.profIdent)],
+      ["PayloadOrganization", sVal(ORG)],
+      ["PayloadRemovalDisallowed", bVal(false)],
+      ["PayloadType", sVal("Configuration")],
+      ["PayloadUUID", sVal(ids.profUUID)],
+      ["PayloadVersion", iVal(1)]
+    ], 0);
+
+    return '<?xml version="1.0" encoding="UTF-8"?>\n' +
+      '<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n' +
+      '<plist version="1.0">\n' + profile + "\n</plist>\n";
+  }
+
+  function makeXmlChecked(){
+    const xml = buildXml();
+    const doc = new DOMParser().parseFromString(xml, "application/xml");
+    if(doc.getElementsByTagName("parsererror").length) throw new Error("bad xml");
+    return xml;
+  }
+
+  function makeBlobUrl(){
+    return URL.createObjectURL(new Blob([makeXmlChecked()], { type: "application/x-apple-aspen-config" }));
+  }
+
+  $("iconFile").addEventListener("change", async e => {
+    const file = e.target.files && e.target.files[0];
+    if(!file) return;
+    try{
+      iconDataUrl = await toIcon(file);
+      $("preview").innerHTML = '<img src="' + iconDataUrl + '" alt="">';
+      msg("");
+    }catch(err){
+      iconDataUrl = null;
+      $("preview").textContent = "بدون أيقونة";
+      msg("تعذّر قراءة الصورة. جرّب صورة أخرى.", true);
+    }
+  });
+
+  $("install").addEventListener("click", () => {
+    const err = validate();
+    if(err){ msg(err, true); return; }
+    try{
+      msg("");
+      window.location.href = makeBlobUrl();
+    }catch(e){
+      msg("تعذّر إنشاء ملف التثبيت.", true);
+    }
+  });
+
+  $("save").addEventListener("click", () => {
+    const err = validate();
+    if(err){ msg(err, true); return; }
+    try{
+      const a = document.createElement("a");
+      a.href = makeBlobUrl();
+      a.download = ($("appName").value.trim() || "app") + ".mobileconfig";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      msg("تم حفظ الملف.");
+    }catch(e){
+      msg("تعذّر حفظ الملف.", true);
+    }
+  });
+})();
+</script>
+</body>
+</html>
