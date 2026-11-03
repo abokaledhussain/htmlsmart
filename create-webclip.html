@@ -241,13 +241,31 @@
     }
   });
 
-  $("save").addEventListener("click", () => {
+  $("save").addEventListener("click", async () => {
     const err = validate();
     if(err){ msg(err, true); return; }
     try{
+      const xml = makeXmlChecked();
+      const fileName = ($("appName").value.trim() || "app") + ".mobileconfig";
+      /* نوع عام حتى لا يفتح iOS نافذة التثبيت بدل الحفظ */
+      const file = new File([xml], fileName, { type: "application/octet-stream" });
+
+      /* على iPhone تظهر ورقة المشاركة فيها خيار "حفظ في الملفات" */
+      if(navigator.canShare && navigator.canShare({ files: [file] })){
+        try{
+          await navigator.share({ files: [file], title: fileName });
+          msg("اختر «حفظ في الملفات» من القائمة.");
+          return;
+        }catch(e){
+          if(e && e.name === "AbortError") return;
+        }
+      }
+
+      /* احتياط للمتصفحات التي لا تدعم المشاركة */
+      const url = URL.createObjectURL(file);
       const a = document.createElement("a");
-      a.href = makeBlobUrl();
-      a.download = ($("appName").value.trim() || "app") + ".mobileconfig";
+      a.href = url;
+      a.download = fileName;
       document.body.appendChild(a);
       a.click();
       a.remove();
