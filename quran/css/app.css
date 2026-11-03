@@ -13,6 +13,7 @@
   --cream: #FFFBF5;
   --red: #C62828;
   --bar-h: 52px;
+  --safe-top: env(safe-area-inset-top, 0px);
 }
 * { box-sizing: border-box; }
 html, body { margin: 0; height: 100%; }
@@ -29,10 +30,10 @@ button, select, input { font: inherit; }
 
 /* ---------- الشريط العلوي ---------- */
 #topbar {
-  position: fixed; top: 0; left: 0; right: 0; height: var(--bar-h);
+  position: fixed; top: 0; left: 0; right: 0; height: calc(var(--bar-h) + var(--safe-top));
   background: var(--bar); color: #fff;
   display: flex; align-items: center; justify-content: space-between;
-  padding: 0 8px; z-index: 20;
+  padding: var(--safe-top) 8px 0; z-index: 20;
   border-bottom: 1px solid var(--gold);
 }
 .juz-label { color: #E8E8E8; font-size: 13px; font-weight: 700; white-space: nowrap; padding: 0 6px; }
@@ -50,7 +51,7 @@ button, select, input { font: inherit; }
 
 /* ---------- المصحف ---------- */
 #reader {
-  position: fixed; top: var(--bar-h); bottom: 0; left: 0; right: 0;
+  position: fixed; top: calc(var(--bar-h) + var(--safe-top)); bottom: 0; left: 0; right: 0;
   overflow-y: auto; overflow-x: hidden; background: var(--screen);
   -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
 }
