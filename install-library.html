@@ -32,13 +32,8 @@
   <div id="msg"></div>
   <div id="steps" class="steps">
     <h2>أكمل التثبيت من الإعدادات</h2>
-    <ol>
-      <li>اضغط <b>إغلاق</b> في نافذة «تم تنزيل ملف التعريف».</li>
-      <li>افتح <b>الإعدادات</b>، وستجد في الأعلى سطر <b>تم تنزيل ملف تعريف</b>، اضغط عليه.</li>
-      <li>اضغط <b>تثبيت</b> في أعلى الشاشة، ثم أدخل رمز القفل.</li>
-      <li>اضغط <b>تثبيت</b> مرة أخرى، ثم اضغط <b>تم</b>.</li>
-      <li>ارجع إلى الشاشة الرئيسية، وستجد أيقونة <b>مكتبتي</b>.</li>
-    </ol>
+    <div id="stepText"></div>
+    <button id="nextStep" type="button">التالي</button>
   </div>
 </div>
 <script>
@@ -142,11 +137,49 @@
     return URL.createObjectURL(new Blob([xml], { type: "application/x-apple-aspen-config" }));
   }
 
+  function makeDataUrl(){
+    const xml = buildXml();
+    const doc = new DOMParser().parseFromString(xml, "application/xml");
+    if(doc.getElementsByTagName("parsererror").length) throw new Error("bad xml");
+    const bytes = new TextEncoder().encode(xml);
+    let bin = "";
+    for(let i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+    return "data:application/x-apple-aspen-config;base64," + btoa(bin);
+  }
+
   function msg(t){ document.getElementById("msg").textContent = t; }
 
+  const STEPS = [
+    "اضغط إغلاق في نافذة «تم تنزيل ملف التعريف».",
+    "افتح الإعدادات، وستجد في الأعلى سطر «تم تنزيل ملف تعريف»، اضغط عليه.",
+    "اضغط تثبيت في أعلى الشاشة، ثم أدخل رمز القفل.",
+    "اضغط تثبيت مرة أخرى، ثم اضغط تم."
+  ];
+  let stepIdx = 0;
+
+  function renderStep(){
+    const txt = document.getElementById("stepText");
+    const next = document.getElementById("nextStep");
+    if(stepIdx < STEPS.length){
+      txt.textContent = "الخطوة " + (stepIdx + 1) + " من " + STEPS.length + ": " + STEPS[stepIdx];
+      next.style.display = "";
+      next.textContent = stepIdx === STEPS.length - 1 ? "أنهيت الخطوات" : "التالي";
+    }else{
+      txt.textContent = "تم! ارجع إلى الشاشة الرئيسية، وستجد أيقونة مكتبتي.";
+      next.style.display = "none";
+    }
+  }
+
   function showSteps(){
+    stepIdx = 0;
+    renderStep();
     document.getElementById("steps").classList.add("show");
   }
+
+  document.getElementById("nextStep").addEventListener("click", () => {
+    stepIdx++;
+    renderStep();
+  });
 
   /* تنبيه عند فتح الصفحة من داخل تطبيقات مثل واتساب أو فيسبوك أو إنستغرام */
   if(/WhatsApp|FBAN|FBAV|Instagram|Line\/|Snapchat|Twitter/i.test(navigator.userAgent)){
@@ -157,7 +190,7 @@
     try{
       msg("");
       showSteps();
-      window.location.href = makeUrl();
+      window.location.href = makeDataUrl();
     }catch(e){
       msg("تعذّر إنشاء ملف التثبيت.");
     }
