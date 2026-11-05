@@ -1154,5 +1154,32 @@
     if (navigator.storage && navigator.storage.persist) navigator.storage.persist().catch(() => {});
   }
 
+  // جسر التخزين: صفحات الإطار المعزول (sandbox) لا تصل إلى localStorage،
+  // فتطلب منا القراءة والكتابة عبر postMessage، ونحفظ في تخزين المكتبة نفسها.
+  window.addEventListener('message', function (e) {
+    var d = e.data;
+    if (!d || d.type !== 'tvstore') return;
+    var frame = document.getElementById('viewerFrame');
+    if (!frame || e.source !== frame.contentWindow) return;
+    var PREFIX = 'htmlsmart-tv:';
+    var reply = { type: 'tvstore-reply', id: d.id, ok: false };
+    try {
+      if (d.op === 'all') {
+        var all = {};
+        for (var i = 0; i < localStorage.length; i++) {
+          var k = localStorage.key(i);
+          if (k && k.indexOf(PREFIX) === 0) all[k.slice(PREFIX.length)] = localStorage.getItem(k);
+        }
+        reply.all = all;
+      } else if (d.op === 'set') {
+        localStorage.setItem(PREFIX + d.key, String(d.value));
+      } else if (d.op === 'del') {
+        localStorage.removeItem(PREFIX + d.key);
+      }
+      reply.ok = true;
+    } catch (err) { /* تعذّر التخزين عندنا: نُبلغ الإطار */ }
+    e.source.postMessage(reply, '*');
+  });
+
   init();
 })();
