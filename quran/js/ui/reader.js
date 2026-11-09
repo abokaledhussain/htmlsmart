@@ -460,4 +460,12 @@
   };
 
   window.Reader = Reader;
+
+  /* بعد اكتمال تحميل الخطوط نعيد قياس الأسطر المرسومة، لأن القياس قبل ذلك قد يعطي عرضاً خاطئاً
+     للبسملة والترويسة فتخرج عن حدود الشاشة */
+  if (document.fonts && document.fonts.ready) {
+    document.fonts.ready.then(function () {
+      try { if (Object.keys(rendered).length) Reader.refresh(); } catch (e) {}
+    });
+  }
 })();
