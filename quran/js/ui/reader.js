@@ -112,6 +112,10 @@
       var size = result.size * row.scale;
       var line = Util.el('div', 'ln');
       line.style.height = (result.size * 1.5) + 'px';
+      /* الترويسة والبسملة تحتاج فراغاً فوقها يفصلها عن الآية السابقة */
+      if (row.tokens.some(function (t) { return t.type === 'h' || t.type === 'b'; })) {
+        line.style.marginTop = (result.size * 1.5 * 0.35) + 'px';
+      }
       line.style.justifyContent = Layout.spreadOf(row, result.size, result.avail) ? 'space-between' : 'center';
       row.tokens.forEach(function (t) {
         var span = Util.el('span', 'tok');
