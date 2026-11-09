@@ -104,6 +104,7 @@
       line.forEach(function (t) { if (t.type === 'w') gis.set(t, gi++); });
     });
     sec.innerHTML = '';
+    sec.style.minHeight = '';
     var prevJuz = n > 1 ? QuranData.pages[n - 1].juz : null;
     if (prevJuz !== page.juz) sec.appendChild(Util.el('div', 'juz', 'الجزء ' + Util.digits(page.juz)));
 
@@ -221,9 +222,21 @@
   }
 
   /* الانتقال إلى صفحة مع إزاحة، كما scrollToPositionWithOffset في الأندرويد */
+  function preloadNeighbours(n) {
+    [n - 1, n + 1].forEach(function (k) {
+      if (k >= 1 && k <= LAST && QuranData.pages[k]) ensureFonts(QuranData.pages[k]);
+    });
+  }
+
   function jumpTo(n, offset) {
     n = Util.clamp(n, 1, LAST);
     offset = offset || 0;
+    /* إن لم تُرسم الصفحة المطلوبة بعد (ينتظر خطها)، نعطيها ارتفاع الصفحة الحالية مؤقتاً
+       حتى يتم الانتقال فورًا، ثم يُزال هذا الارتفاع عند الرسم */
+    var prevH = sections[state.visible] ? sections[state.visible].offsetHeight : 0;
+    if (!rendered[n] && prevH > 0 && !fontsReadyFor(QuranData.pages[n])) {
+      sections[n].style.minHeight = prevH + 'px';
+    }
     setVisible(n);
     var id = state.jumpId = (state.jumpId || 0) + 1;
     var place = function () {
@@ -258,6 +271,7 @@
       renderPage(n);
       place();
     });
+    preloadNeighbours(n);
   }
 
   /* ---------- التحديد والضغط ---------- */
