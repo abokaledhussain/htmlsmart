@@ -225,14 +225,39 @@
     n = Util.clamp(n, 1, LAST);
     offset = offset || 0;
     setVisible(n);
+    var id = state.jumpId = (state.jumpId || 0) + 1;
     var place = function () {
       var rt = reader.getBoundingClientRect().top;
       reader.scrollTop += sections[n].getBoundingClientRect().top - rt - offset;
     };
+    /* أي لمس أو تمرير يدوي يوقف الضبط التلقائي فورًا */
+    var cancel = function () { state.jumpId++; };
+    reader.addEventListener('touchstart', cancel, { passive: true });
+    reader.addEventListener('wheel', cancel, { passive: true });
+    reader.addEventListener('pointerdown', cancel, { passive: true });
+    var finish = function () {
+      reader.removeEventListener('touchstart', cancel);
+      reader.removeEventListener('wheel', cancel);
+      reader.removeEventListener('pointerdown', cancel);
+    };
     renderPage(n);
     place();
-    /* بعد رسم الصفحة قد يتغيّر ارتفاعها، فنعيد الضبط بعد لحظة */
-    setTimeout(function () { renderPage(n); place(); }, 150);
+    /* الصفحات فوق الهدف تُرسم لاحقًا وتغيّر الارتفاعات، والخطوط قد تصل بعد الرسم؛
+       لذلك نعيد الضبط في كل إطار حتى يستقر الموضع أو تنتهي المهلة */
+    var started = Date.now();
+    var step = function () {
+      if (state.jumpId !== id) { finish(); return; }
+      renderPage(n);
+      place();
+      if (Date.now() - started < 1500) requestAnimationFrame(step);
+      else finish();
+    };
+    requestAnimationFrame(step);
+    ensureFonts(QuranData.pages[n]).then(function () {
+      if (state.jumpId !== id) return;
+      renderPage(n);
+      place();
+    });
   }
 
   /* ---------- التحديد والضغط ---------- */
