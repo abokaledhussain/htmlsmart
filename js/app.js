@@ -1052,13 +1052,7 @@
     const remoteHash = await sha256Hex(buf);
     if (remoteHash === state.settings.remoteHash) return;
 
-    const localHash = await localFingerprint();
-    const localChanged = state.settings.appliedLocalHash !== localHash;
-    if (localChanged && state.pages.length > 0) {
-      askRemoteRestore(buf, remoteHash);
-    } else {
-      await applyRemoteBackup(buf, remoteHash);
-    }
+    await applyRemoteBackup(buf, remoteHash);
   }
 
   async function applyRemoteBackup(buf, remoteHash) {
@@ -1068,26 +1062,9 @@
       state.settings.remoteHash = remoteHash;
       state.settings.appliedLocalHash = await localFingerprint();
       save();
-      showToast(`تمت استعادة النسخة المنشورة: ${data.list.length} صفحة`);
     } catch (err) {
       console.warn('تعذّرت الاستعادة التلقائية', err);
     }
-  }
-
-  function askRemoteRestore(buf, remoteHash) {
-    const wrap = el('div');
-    wrap.appendChild(el('h2', '', 'نسخة جديدة متاحة'));
-    wrap.appendChild(el('p', '', 'تم تحديث النسخة المنشورة، لكن هذا الجهاز عدّل صفحاته بعد آخر استعادة. هل تستبدل صفحاته بالنسخة الجديدة؟ التعديلات المحلية ستفقد.'));
-    const row = el('div', 'row end');
-    const ignore = el('button', 'btn ghost', 'تجاهل');
-    ignore.type = 'button';
-    ignore.onclick = () => { state.settings.remoteHash = remoteHash; save(); closeModal(); };
-    const replace = el('button', 'btn danger', 'استبدال');
-    replace.type = 'button';
-    replace.onclick = () => { closeModal(); applyRemoteBackup(buf, remoteHash); };
-    row.append(ignore, replace);
-    wrap.appendChild(row);
-    openModal(wrap, true);
   }
 
   function showToast(text) {
