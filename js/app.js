@@ -185,7 +185,7 @@
 
   function render() {
     const grid = $('#grid');
-    const query = $('#search').value.trim().toLowerCase();
+    const query = '';
     grid.textContent = '';
     $('#brandFoot').classList.add('hidden');
     if (query) {
@@ -1118,7 +1118,6 @@
     document.addEventListener('visibilitychange', syncWakeLock);
     document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') checkRemoteBackup(); });
     checkRemoteBackup();
-    on('#search', 'input', render);
     on('#viewerBack', 'click', closeViewer);
     bindOverlays();
 
