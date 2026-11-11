@@ -259,3 +259,10 @@ button, select, input { font: inherit; }
   .ln { padding: 0 4px; }
   .modal-panel { padding: 16px 12px 12px; }
 }
+
+/* ---------- طبقة التقليب (الوضع العرضي) ---------- */
+#curl {
+  position: fixed; top: var(--bar-h); bottom: 0; left: 0; right: 0;
+  width: 100%; height: calc(100% - var(--bar-h));
+  touch-action: none; display: block; user-select: none; -webkit-user-select: none;
+}

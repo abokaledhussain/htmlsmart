@@ -72,6 +72,13 @@
     rangeLabel.textContent = 'الحجم: ' + pct + '%';
     var tj = Util.clamp(Store.get('tajweedMode', 1), 0, 2);
     document.querySelectorAll('input[name="taj"]').forEach(function (r) { r.checked = +r.value === tj; });
+    /* التنقل وعدد الصفحات يخصان الاتجاه الحالي للجهاز */
+    var landscape = Spread.isLandscape();
+    var mode = Spread.modeFor(landscape);
+    document.querySelector('input[name="nav"][value="' + (mode.nav ? 1 : 0) + '"]').checked = true;
+    document.querySelector('input[name="spread"][value="' + (mode.two ? 2 : 1) + '"]').checked = true;
+    document.getElementById('keep-awake').checked = !!Store.get('keepScreenOn', false);
+    document.getElementById('mode-hint').textContent = 'هذه الخيارات تخص الاتجاه الحالي: ' + (landscape ? 'عرضي' : 'طولي');
     selectedTheme = themeIndex();
     renderThemes();
     fillReciters();
@@ -86,6 +93,12 @@
     Store.set('tajweedMode', checked ? +checked.value : 1);
     Store.set('theme', selectedTheme);
     Store.set('reciter', recSel.value);
+    Store.set('keepScreenOn', document.getElementById('keep-awake').checked);
+    var navChecked = document.querySelector('input[name="nav"]:checked');
+    var spreadChecked = document.querySelector('input[name="spread"]:checked');
+    Spread.saveModeFor(Spread.isLandscape(),
+      !!navChecked && +navChecked.value === 1,
+      !!spreadChecked && +spreadChecked.value === 2);
     var t = applyTheme(selectedTheme);
     window.CurrentPalette = { name: THEMES[selectedTheme].name, ink: t.ink };
     close();

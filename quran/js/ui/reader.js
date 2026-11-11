@@ -21,7 +21,8 @@
   var sections = {};
   var rendered = {};     /* رقم الصفحة -> مفتاح التخطيط الذي رُسمت به */
   var fontReady = {};    /* اسم الخط -> محمَّل */
-  var state = { visible: 1, activeSurah: -1, activeAyah: -1, chrome: false, auto: false, saveTimer: null };
+  var state = { visible: 1, activeSurah: -1, activeAyah: -1, chrome: false, auto: false, saveTimer: null, curl: false, two: false };
+  var tried = {};        /* عناصر التقليب التي طُلب تحميل خطوطها */
   var settings = { scale: 1, tajweed: 1 };
   var palette = null;
   var longTimer = null, longFired = false, downAt = null;
@@ -152,6 +153,7 @@
 
   /* تظليل الآية المختارة وتلوين الجارية تلاوتها */
   function markStates(root) {
+    if (state.curl && !root) { Curl.clearCache(); Curl.draw(); return; }
     var toks = (root || pagesEl).querySelectorAll('.tok[data-a]');
     var playing = Audio_.isActive();
     for (var i = 0; i < toks.length; i++) {
@@ -211,7 +213,7 @@
 
   function savePosition() {
     var n = state.visible;
-    var offset = Math.round(sections[n].getBoundingClientRect().top - reader.getBoundingClientRect().top);
+    var offset = state.curl ? 0 : Math.round(sections[n].getBoundingClientRect().top - reader.getBoundingClientRect().top);
     Store.set('page', n);
     Store.set('pageOffset', offset);
   }
@@ -231,6 +233,12 @@
   function jumpTo(n, offset) {
     n = Util.clamp(n, 1, LAST);
     offset = offset || 0;
+    if (state.curl) {
+      var cp = Spread.positionOf(n, state.two);
+      setVisible(Spread.pagesAt(cp, state.two)[0]);
+      Curl.jump(cp);
+      return;
+    }
     /* إن لم تُرسم الصفحة المطلوبة بعد (ينتظر خطها)، نعطيها ارتفاع الصفحة الحالية مؤقتاً
        حتى يتم الانتقال فورًا، ثم يُزال هذا الارتفاع عند الرسم */
     var prevH = sections[state.visible] ? sections[state.visible].offsetHeight : 0;
@@ -376,21 +384,19 @@
   }
 
   function startAuto() {
-    if (state.auto) return;
+    if (state.auto || state.curl) return;
     state.auto = true;
     lastTs = 0;
     remainder = 0;
     raf = requestAnimationFrame(tick);
-    try {
-      if (navigator.wakeLock) navigator.wakeLock.request('screen').then(function (l) { wakeLock = l; }, function () {});
-    } catch (e) { /* غير مدعوم */ }
+    keepAwake();
     scrollPlay.textContent = '❚❚';
   }
 
   function stopAuto() {
     state.auto = false;
     cancelAnimationFrame(raf);
-    if (wakeLock) { try { wakeLock.release(); } catch (e) { /* لا شيء */ } wakeLock = null; }
+    keepAwake();
     scrollPlay.textContent = '▶';
   }
 
@@ -407,6 +413,88 @@
     }
     var rt = reader.getBoundingClientRect().top;
     reader.scrollTop += target.getBoundingClientRect().top - rt - 100;
+  }
+
+  /* ---------- وضع التقليب (الاتجاه العرضي) ---------- */
+  function cssVar(name) {
+    return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || '#F4F9F2';
+  }
+
+  /* لوحة العنصر المطلوب: تُرسم بعد تحميل خطوطه، ولا تُرسم قبلها */
+  function spreadEntry(pos) {
+    var pages = Spread.pagesAt(pos, state.two);
+    if (!Spread.fontsLoaded(pages)) {
+      if (!tried[pos]) {
+        tried[pos] = true;
+        Spread.ready(pages).then(function () { Curl.clearCache(); Curl.draw(); });
+      }
+      return null;
+    }
+    var size = Curl.size();
+    return Spread.render(pos, size.w, size.h, {
+      two: state.two,
+      scale: settings.scale,
+      tajweed: settings.tajweed,
+      page: cssVar('--page'),
+      ink: cssVar('--ink'),
+      muted: cssVar('--muted'),
+      highlight: cssVar('--highlight'),
+      activeSurah: state.activeSurah,
+      activeAyah: state.activeAyah,
+      playSurah: Audio_.isActive() ? Audio_.surah : -1,
+      playAyah: Audio_.isActive() ? Audio_.ayah : -1
+    });
+  }
+
+  /* يطبّق وضع العرض حسب الاتجاه الحالي وإعداداته، ويعيد true إن تغيّر الوضع */
+  function applyMode() {
+    var m = Spread.modeFor(Spread.isLandscape());
+    var was = state.curl;
+    state.curl = m.nav;
+    state.two = m.two;
+    reader.hidden = state.curl;
+    if (state.curl) {
+      if (state.auto) stopAuto();
+      Curl.count = Spread.countOf(state.two);
+      Curl.pos = Spread.positionOf(state.visible, state.two);
+      Curl.show();
+    } else {
+      Curl.hide();
+    }
+    return was !== state.curl;
+  }
+
+  /* إبقاء الشاشة مضاءة: إذا فُعّل الخيار في الإعدادات، أو أثناء التمرير التلقائي */
+  var keepWake = null;
+  function keepAwake() {
+    var want = !!Store.get('keepScreenOn', false) || state.auto;
+    if (want && !keepWake && navigator.wakeLock) {
+      navigator.wakeLock.request('screen').then(function (l) {
+        keepWake = l;
+        l.addEventListener('release', function () { keepWake = null; });
+      }, function () {});
+    } else if (!want && keepWake) {
+      try { keepWake.release(); } catch (e) { /* لا شيء */ }
+      keepWake = null;
+    }
+  }
+
+  /* النقر في الوسط في وضع التقليب: الآية ثم الشريط، كما في الأندرويد */
+  function curlCenterTap(x, y) {
+    var hit = Curl.hitAt(x, y);
+    if (hit) toggleAyah(hit.s, hit.a);
+    toggleChrome();
+  }
+
+  var resizeT = null;
+  function onResize() {
+    clearTimeout(resizeT);
+    resizeT = setTimeout(function () {
+      var n = state.visible;
+      applyMode();
+      if (state.curl) Curl.clearCache();
+      jumpTo(n, 0);
+    }, 120);
   }
 
   /* ---------- الواجهة العامة ---------- */
@@ -432,6 +520,17 @@
       Audio_.onChange(onAudioChanged);
       setChrome(false);
       updateAudio();
+      Curl.provider = spreadEntry;
+      Curl.onPageChanged = function (pos) {
+        setVisible(Spread.pagesAt(pos, state.two)[0]);
+        saveSoon();
+      };
+      Curl.onCenterTap = curlCenterTap;
+      Curl.onLongPress = function (hit) { Reader.onLongPress(hit.s, hit.a, hit.page); };
+      applyMode();
+      keepAwake();
+      window.addEventListener('resize', onResize);
+      document.addEventListener('visibilitychange', function () { if (!document.hidden) keepAwake(); });
       jumpTo(Util.clamp(Store.get('page', 1), 1, LAST), Store.get('pageOffset', 0));
     },
 
@@ -439,6 +538,14 @@
     refresh: function (pal) {
       palette = pal || palette;
       readSettings();
+      var changed = applyMode();
+      keepAwake();
+      if (state.curl) {
+        Curl.clearCache();
+        jumpTo(state.visible, 0);
+        return;
+      }
+      if (changed) { jumpTo(state.visible, 0); markStates(); return; }
       var anchor = state.visible;
       var offset = sections[anchor].getBoundingClientRect().top - reader.getBoundingClientRect().top;
       busy = true;

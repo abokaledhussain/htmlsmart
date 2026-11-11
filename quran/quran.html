@@ -29,6 +29,9 @@
     <div id="pages"></div>
   </main>
 
+  <!-- طبقة التقليب في الوضع العرضي (صفحة أو صفحتان) -->
+  <canvas id="curl" hidden></canvas>
+
   <!-- شريط التمرير التلقائي: يظهر بالضغط على الصفحة -->
   <div id="scrollbar" class="bar" hidden>
     <div class="bar-row">
@@ -85,6 +88,30 @@
       </div>
 
       <div class="set-section">
+        <h2 class="set-title">التنقل</h2>
+        <div class="set-body">
+          <label class="radio-line"><input type="radio" name="nav" value="0"> تمرير مستمر</label>
+          <label class="radio-line"><input type="radio" name="nav" value="1"> تقليب الصفحات</label>
+        </div>
+      </div>
+
+      <div class="set-section">
+        <h2 class="set-title">عدد الصفحات</h2>
+        <div class="set-body">
+          <label class="radio-line"><input type="radio" name="spread" value="1"> صفحة واحدة</label>
+          <label class="radio-line"><input type="radio" name="spread" value="2"> صفحتان متجاورتان</label>
+          <div id="mode-hint" class="credit" style="margin:8px 0 0"></div>
+        </div>
+      </div>
+
+      <div class="set-section">
+        <h2 class="set-title">الشاشة</h2>
+        <div class="set-body">
+          <label class="radio-line"><input type="checkbox" id="keep-awake"> إبقاء الشاشة مضاءة أثناء القراءة</label>
+        </div>
+      </div>
+
+      <div class="set-section">
         <h2 class="set-title">التجويد</h2>
         <div class="set-body">
           <label class="radio-line"><input type="radio" name="taj" value="0"> إيقاف التجويد</label>
@@ -113,7 +140,7 @@
       </div>
 
       <p class="credit">برمجة <span class="gold">حسين العرياني</span></p>
-      <p class="version">الإصدار 1.48.5</p>
+      <p class="version">الإصدار 1.49.13</p>
     </div>
   </section>
 
@@ -131,6 +158,7 @@
   <script src="js/lib/quran-data.js"></script>
   <script src="js/lib/search.js"></script>
   <script src="js/lib/layout.js"></script>
+  <script src="js/lib/spread.js"></script>
   <script src="js/lib/audio.js"></script>
   <script src="js/lib/tafsir.js"></script>
   <script src="js/lib/bookmarks.js"></script>
@@ -138,6 +166,7 @@
   <!-- الواجهة -->
   <script src="js/ui/dialogs.js"></script>
   <script src="js/ui/reader.js"></script>
+  <script src="js/ui/curl.js"></script>
   <script src="js/ui/actions.js"></script>
   <script src="js/ui/search.js"></script>
   <script src="js/ui/extras.js"></script>
