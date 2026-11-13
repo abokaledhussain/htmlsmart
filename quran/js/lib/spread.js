@@ -172,8 +172,13 @@
 
   function isLandscape() { return window.matchMedia('(orientation: landscape)').matches; }
 
-  /* إعدادات الاتجاه: التنقل (تقليب أو تمرير) وصفحة/صفحتان، والافتراضي للعرضي تقليب وصفحتان */
+  /* التابلت: أصغر بعدي النافذة 600 بكسل أو أكثر (الآيباد وأجهزة اللوحات). الجوال والآيفون أصغر من ذلك */
+  function isTablet() { return Math.min(window.innerWidth, window.innerHeight) >= 600; }
+
+  /* إعدادات الاتجاه: التنقل (تقليب أو تمرير) وصفحة/صفحتان، والافتراضي للعرضي تقليب وصفحتان.
+     على الجوال والآيفون: تمرير مستمر بصفحة واحدة في الاتجاهين، بلا تقليب ولا صفحتين */
   function modeFor(landscape) {
+    if (!isTablet()) return { nav: false, two: false };
     return {
       nav: !!Store.get(landscape ? 'navLandscape' : 'navPortrait', landscape),
       two: !!Store.get(landscape ? 'twoPageLandscape' : 'twoPagePortrait', landscape)
@@ -188,6 +193,7 @@
   window.Spread = {
     LAST: LAST,
     isLandscape: isLandscape,
+    isTablet: isTablet,
     modeFor: modeFor,
     saveModeFor: saveModeFor,
     positionOf: positionOf,
