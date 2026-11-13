@@ -78,7 +78,12 @@
     document.querySelector('input[name="nav"][value="' + (mode.nav ? 1 : 0) + '"]').checked = true;
     document.querySelector('input[name="spread"][value="' + (mode.two ? 2 : 1) + '"]').checked = true;
     document.getElementById('keep-awake').checked = !!Store.get('keepScreenOn', false);
-    document.getElementById('mode-hint').textContent = 'هذه الخيارات تخص الاتجاه الحالي: ' + (landscape ? 'عرضي' : 'طولي');
+    /* على الجوال والآيفون: تمرير بصفحة واحدة فقط، فتُعطَّل الخيارات ويظهر السبب */
+    var tablet = Spread.isTablet();
+    document.querySelectorAll('input[name="nav"], input[name="spread"]').forEach(function (r) { r.disabled = !tablet; });
+    document.getElementById('mode-hint').textContent = tablet
+      ? 'هذه الخيارات تخص الاتجاه الحالي: ' + (landscape ? 'عرضي' : 'طولي')
+      : 'على الجوال والآيفون: تمرير مستمر بصفحة واحدة. التقليب وصفحتان متاحان على التابلت فقط.';
     selectedTheme = themeIndex();
     renderThemes();
     fillReciters();
@@ -94,11 +99,14 @@
     Store.set('theme', selectedTheme);
     Store.set('reciter', recSel.value);
     Store.set('keepScreenOn', document.getElementById('keep-awake').checked);
-    var navChecked = document.querySelector('input[name="nav"]:checked');
-    var spreadChecked = document.querySelector('input[name="spread"]:checked');
-    Spread.saveModeFor(Spread.isLandscape(),
-      !!navChecked && +navChecked.value === 1,
-      !!spreadChecked && +spreadChecked.value === 2);
+    /* على الجوال لا تُحفظ خيارات التنقل والصفحتين، لأنها معطّلة هناك */
+    if (Spread.isTablet()) {
+      var navChecked = document.querySelector('input[name="nav"]:checked');
+      var spreadChecked = document.querySelector('input[name="spread"]:checked');
+      Spread.saveModeFor(Spread.isLandscape(),
+        !!navChecked && +navChecked.value === 1,
+        !!spreadChecked && +spreadChecked.value === 2);
+    }
     var t = applyTheme(selectedTheme);
     window.CurrentPalette = { name: THEMES[selectedTheme].name, ink: t.ink };
     close();
